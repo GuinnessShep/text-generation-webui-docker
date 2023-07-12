@@ -4,7 +4,7 @@ services:
     image: atinoda/text-generation-webui:default # Specify variant as the :tag
     container_name: text-generation-webui
     environment:
-      - EXTRA_LAUNCH_ARGS="--listen --verbose" # Custom launch args (e.g., --model MODEL_NAME)
+      - EXTRA_LAUNCH_ARGS="--listen --verbose --share --auto-devices" # Custom launch args (e.g., --model MODEL_NAME)
       - BUILD_EXTENSIONS_LIVE="send_pictures gallery character_bias" # Install named extensions during every container launch. THIS WILL SIGNIFICANLTLY SLOW LAUNCH TIME.
     ports:
       - 7860:7860  # Default web port
@@ -18,7 +18,7 @@ services:
       - ./config/prompts:/app/prompts
       - ./config/softprompts:/app/softprompts
       - ./config/training:/app/training
-#      - ./config/extensions:/app/extensions
+      - ./config/extensions:/app/extensions
     logging:
       driver:  json-file
       options:
