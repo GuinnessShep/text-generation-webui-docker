@@ -1,0 +1,37 @@
+name: Docker Image CI
+
+on:
+  push:
+    branches: [ "master" ]
+  pull_request:
+    branches: [ "master" ]
+
+env:
+  DOCKERFILES_INFO: '[{"url": "https://example.com/Dockerfile1", "commands_order": ["FROM", "RUN", "CMD"]}, {"url": "https://example.com/Dockerfile2", "commands_order": ["FROM", "RUN"]}]'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3.5.3
+
+    - name: Set up Python
+      uses: actions/setup-python@v3.1.4
+      with:
+        python-version: 3.x
+    
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install requests
+
+    - name: Merge Dockerfiles
+      run: python merge_dockerfiles.py
+
+    - name: Build the Docker image
+      run: |
+        if [ -f DockerfileMerged ]; then
+          docker build . --file DockerfileMerged --tag my-image-name:$(date +%s)
+        else
+          docker build . --file Dockerfile --tag my-image-name:$(date +%s)
+        fi
