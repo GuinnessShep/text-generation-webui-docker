@@ -1,4 +1,4 @@
-name: Docker Image CI
+name: Docker Image merger CI
 
 on:
   push:
@@ -7,7 +7,7 @@ on:
     branches: [ "master" ]
 
 env:
-  DOCKERFILES_INFO: '[{"url": "https://example.com/Dockerfile1", "commands_order": ["FROM", "RUN", "CMD"]}, {"url": "https://example.com/Dockerfile2", "commands_order": ["FROM", "RUN"]}]'
+  DOCKERFILES_INFO: '[{"url": "https://raw.githubusercontent.com/GuinnessShep/text-generation-webui-docker/master/Dockerfile", "commands_order": ["FROM", "RUN", "CMD"]}, {"url": "https://huggingface.co/spaces/Guinnessgshep/Huh/raw/main/Dockerfile", "commands_order": ["FROM", "RUN"]}]'
 
 jobs:
   build:
