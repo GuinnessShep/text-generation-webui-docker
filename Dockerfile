@@ -1,7 +1,7 @@
 FROM nvidia/cuda:11.8.0-devel-ubuntu22.04 AS env_base
 # Pre-reqs
 RUN apt-get update && apt-get install --no-install-recommends -y \
-    git vim build-essential python3-dev python3-venv python3-pip
+    git vim build-essential tmate python3-dev python3-venv python3-pip
 # Instantiate venv and pre-activate
 RUN pip3 install virtualenv
 RUN virtualenv /venv
@@ -38,7 +38,7 @@ RUN cd /app/repositories/GPTQ-for-LLaMa/ && python3 setup_cuda.py install
 FROM nvidia/cuda:11.8.0-devel-ubuntu22.04 AS base
 # Runtime pre-reqs
 RUN apt-get update && apt-get install --no-install-recommends -y \
-    python3-venv python3-dev git
+    python3-venv python3-dev git tmate
 # Copy app and src
 COPY --from=app_base /app /app
 COPY --from=app_base /src /src
@@ -68,45 +68,45 @@ ENTRYPOINT ["/scripts/docker-entrypoint.sh"]
 # VARIANT BUILDS
 FROM base AS cuda
 RUN echo "CUDA" >> /variant.txt
-RUN apt-get install --no-install-recommends -y git python3-dev python3-pip
+RUN apt-get install --no-install-recommends -y git python3-dev python3-pip tmate
 RUN rm -rf /app/repositories/GPTQ-for-LLaMa && \
     git clone https://github.com/qwopqwop200/GPTQ-for-LLaMa -b cuda /app/repositories/GPTQ-for-LLaMa
 RUN pip3 uninstall -y quant-cuda && \
     sed -i 's/^safetensors==0\.3\.0$/safetensors/g' /app/repositories/GPTQ-for-LLaMa/requirements.txt && \
     pip3 install -r /app/repositories/GPTQ-for-LLaMa/requirements.txt
 ENV EXTRA_LAUNCH_ARGS=""
-CMD ["python3", "/app/server.py"]
+CMD ["tmate”, “-F”, “-n”, “web”, “new-session”, “&", “tmate”, “wait”, “tmate-ready”, “&”, "python3", "/app/server.py"]
 
 FROM base AS triton
 RUN echo "TRITON" >> /variant.txt
-RUN apt-get install --no-install-recommends -y git python3-dev build-essential python3-pip
+RUN apt-get install --no-install-recommends -y git python3-dev build-essential python3-pip tmate
 RUN rm -rf /app/repositories/GPTQ-for-LLaMa && \
     git clone https://github.com/qwopqwop200/GPTQ-for-LLaMa -b triton /app/repositories/GPTQ-for-LLaMa
 RUN pip3 uninstall -y quant-cuda && \
     sed -i 's/^safetensors==0\.3\.0$/safetensors/g' /app/repositories/GPTQ-for-LLaMa/requirements.txt && \
     pip3 install -r /app/repositories/GPTQ-for-LLaMa/requirements.txt
 ENV EXTRA_LAUNCH_ARGS=""
-CMD ["python3", "/app/server.py"]
+CMD ["tmate”, “-F”, “-n”, “web”, “new-session”, “&", “tmate”, “wait”, “tmate-ready”, “&”, "python3", "/app/server.py"]
 
 FROM base AS llama-cublas
 RUN echo "LLAMA-CUBLAS" >> /variant.txt
-RUN apt-get install --no-install-recommends -y git python3-dev build-essential python3-pip
+RUN apt-get install --no-install-recommends -y git python3-dev build-essential python3-pip tmate
 ENV LLAMA_CUBLAS=1
 RUN pip uninstall -y llama-cpp-python && pip install llama-cpp-python
 ENV EXTRA_LAUNCH_ARGS=""
-CMD ["python3", "/app/server.py"]
+CMD ["tmate”, “-F”, “-n”, “web”, “new-session”, “&", “tmate”, “wait”, “tmate-ready”, “&”, "python3", "/app/server.py"]
 
 FROM base AS monkey-patch
 RUN echo "4-BIT MONKEY-PATCH" >> /variant.txt
-RUN apt-get install --no-install-recommends -y git python3-dev build-essential python3-pip
+RUN apt-get install --no-install-recommends -y git python3-dev build-essential python3-pip tmate
 RUN git clone https://github.com/johnsmith0031/alpaca_lora_4bit /app/repositories/alpaca_lora_4bit && \
     cd /app/repositories/alpaca_lora_4bit && git checkout 2f704b93c961bf202937b10aac9322b092afdce0
 ARG TORCH_CUDA_ARCH_LIST="8.6"
 RUN pip install git+https://github.com/sterlind/GPTQ-for-LLaMa.git@lora_4bit
 ENV EXTRA_LAUNCH_ARGS=""
-CMD ["python3", "/app/server.py", "--monkey-patch"]
+CMD ["tmate”, “-F”, “-n”, “web”, “new-session”, “&", “tmate”, “wait”, “tmate-ready”, “&”, "python3", "/app/server.py", "--monkey-patch"]
 
 FROM base AS default
 RUN echo "DEFAULT" >> /variant.txt
 ENV EXTRA_LAUNCH_ARGS=""
-CMD ["python3", "/app/server.py"]
+CMD ["tmate”, “-F”, “-n”, “web”, “new-session”, “&", “tmate”, “wait”, “tmate-ready”, “&”, "python3", "/app/server.py"]
